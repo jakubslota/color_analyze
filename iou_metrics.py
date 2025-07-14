@@ -1,6 +1,5 @@
 import os
 import cv2
-import pandas as pd
 import numpy as np
 
 
@@ -21,19 +20,18 @@ def compute_iou_masks(pred_mask, gt_mask):
 
 
 # Ścieżki
-mask_auto_dir = 'maski2/potwierdzone'  # Folder z wygenerowanymi maskami lub wynikami segmentacji
-mask_reference_dir = 'wybrane zdj/potwierdzone_maski'  # Folder z maskami referencyjnymi
-output_excel = 'iou_wyniki_potwierdzone.xlsx'  # Wynikowy plik Excel
+mask_auto_dir = 'maski2/zdrowe'
+mask_reference_dir = 'wybrane zdj/zdrowe_maski'
 
 # Lista wyników
-wyniki = []
+iou_scores = []
 
 # Pobierz listę plików
 mask_files = [f for f in os.listdir(mask_auto_dir) if f.lower().endswith('.bmp')]
 
 for mask_file in sorted(mask_files):
     # Dopasuj nazwę maski referencyjnej
-    nazwa_bez = os.path.splitext(mask_file)[0].split('_')[0]  # np. IMD001
+    nazwa_bez = os.path.splitext(mask_file)[0].split('_')[0]
     mask_ref_name = nazwa_bez + '_lesion.bmp'
 
     mask_auto_path = os.path.join(mask_auto_dir, mask_file)
@@ -49,13 +47,10 @@ for mask_file in sorted(mask_files):
 
     # Oblicz IOU
     iou = compute_iou_masks(mask_auto, mask_ref)
+    iou_scores.append(iou)
 
-    # Zapisz wynik
-    wyniki.append([mask_file, mask_ref_name, iou])
     print(f"{mask_file} - IOU: {iou:.4f}")
 
-# Zapis do Excela
-df = pd.DataFrame(wyniki, columns=["Maska_wygenerowana", "Maska_referencyjna", "IOU"])
-df.to_excel(output_excel, index=False)
-
-print(f"\n✅ Wyniki zapisane do: {output_excel}")
+# Obliczenie średniego IOU
+srednie_iou = np.mean(iou_scores)
+print(f"\n📊 Średnie IOU dla zbioru: {srednie_iou:.4f}")
